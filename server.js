@@ -1,0 +1,27 @@
+import express from "express";
+import dotenv from "dotenv";
+import connectMongoDb from "./db/mongoDB.js";
+import cookieParser from "cookie-parser";
+import userRoute from "./routes/user.routes.js";
+import billRoute from "./routes/bill.route.js"
+
+// configs
+
+dotenv.config();
+const app = express();
+app.use(express.json());
+connectMongoDb();
+app.use(cookieParser());
+
+// routes 
+app.use('/user', userRoute)
+app.use('/bill', billRoute)
+
+app.get('/', (req, res) => {
+    res.status(200).send("hello transporters");
+});
+
+
+app.listen(process.env.PORT, () => {
+    console.log(`app listen on Port${process.env.PORT}`);
+});
