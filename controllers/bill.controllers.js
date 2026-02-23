@@ -163,5 +163,96 @@ const getBiity = async (req, res) => {
 }
 
 
+const getPetrolPump = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 20
+        const { month, year } = req.query
+        const skip = (page - 1) * limit
 
-export { addBillEntry, getBiity };
+        const currentDate = new Date()
+
+        const monthNum = month ? parseInt(month) : currentDate.getMonth() + 1
+        const yearNum = year ? parseInt(year) : currentDate.getFullYear()
+
+        const firstDay = new Date(yearNum, monthNum - 1, 1)
+        const lastDay = new Date(yearNum, monthNum, 0)
+
+        const pumpData = await PetrolPump.find({
+            userId: req.user._id,
+            createdAt: {
+                $gte: firstDay,
+                $lte: lastDay
+            }
+        }).skip(skip).limit(limit)
+
+        const total = await PetrolPump.countDocuments({
+            userId: req.user._id,
+            createdAt: {
+                $gte: firstDay,
+                $lte: lastDay
+            }
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Get petrolpump Data success",
+            pumpData,
+            page,
+            totalPumpData: total,
+            totalPage: Math.ceil(total / limit)
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "server error",
+            error: error.message
+        })
+    }
+}
+
+const updatePetrolPumpPaymentStatus = async (req, res) => {
+    try {
+        const id = req.params.id?.trim()
+        console.log(id)
+        const payment = req.query.payment
+
+        if (!payment) {
+            return res.status(400).json({
+                success: false,
+                message: "payment field required"
+            })
+        }
+
+        if (!["unpayed", "payed"].includes(payment)) {
+            return res.status(400).json({
+                success: false,
+                message: "payment must be 'unpayed' or 'payed'"
+            })
+        }
+
+
+
+        const updatedData = await PetrolPump.findByIdAndUpdate(
+            id,
+            { payment: payment },
+            { returnDocument: "after" }   
+        )
+
+        return res.status(200).json({
+            success: true,
+            message: "Payment status updated",
+            updatedData
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "server error",
+            error: error.message
+        })
+    }
+}
+
+
+export { addBillEntry, getBiity, getPetrolPump, updatePetrolPumpPaymentStatus };
