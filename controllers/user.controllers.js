@@ -13,14 +13,14 @@ const registration = async (req, res) => {
       if (!name || !number || !email || !password || !companyName) return res.status(400).json({ success: false, message: "All fields are requried" });
 
       // check User Exist
-      const checkUserExist = User.find({
+      const checkUserExist = await User.findOne({
          $or: [
             { email: email },
             { number: number }
          ]
       })
+      console.log(checkUserExist)
       if (checkUserExist) return res.status(400).json({ success: false, message: "User already exist" });
-
 
 
       // create new user
@@ -32,7 +32,7 @@ const registration = async (req, res) => {
          companyName: companyName
       })
 
-      const findUser = User.find({
+      const findUser = await User.find({
          $or: [
             { email: email },
             { number: number }
@@ -130,8 +130,8 @@ const refreshExpriedToken = async (req, res) => {
 
       const user = await User.findById(decodeRefreshToken._id);
       if (!user) return res.status(400).json({ success: false, message: "User not  fount" })
-    
-      if (user.refreshToken !== refreshToken) return res.status(400).json({ success: false, message: "Mismatch refreshToken"})
+
+      if (user.refreshToken !== refreshToken) return res.status(400).json({ success: false, message: "Mismatch refreshToken" })
 
       const newToken = await jwt.sign({
          _id: user._id,
@@ -139,7 +139,7 @@ const refreshExpriedToken = async (req, res) => {
          email: user.email
       }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIR })
 
-      return res.status(201).cookie("token", newToken, options).json({success:true , message:"Token refresh success"})
+      return res.status(201).cookie("token", newToken, options).json({ success: true, message: "Token refresh success" })
 
    } catch (error) {
       return res.status(500).json({ success: false, message: "Server error", error: error.message })

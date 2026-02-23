@@ -1,12 +1,10 @@
 import mongoose, { Schema, model } from "mongoose";
-import User from "./user.model.js";
-
+ 
 const billSchema = new Schema({
-    ownerId: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: User,
+        ref: "User",
         requried: true
-
     },
     InvoiceNo: {
         type: String,
@@ -36,15 +34,7 @@ const billSchema = new Schema({
         type: String,
         requried: true
     },
-    LRNORRNO: {
-        type: String,
-        requried: true
-    },
     VehicleNo: {
-        type: String,
-        requried: true
-    },
-    ChallanNo: {
         type: String,
         requried: true
     },

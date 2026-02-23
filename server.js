@@ -4,6 +4,7 @@ import connectMongoDb from "./db/mongoDB.js";
 import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.routes.js";
 import billRoute from "./routes/bill.route.js"
+import expantionRoute from "./routes/otherExpantion.route.js"
 
 // configs
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 // routes 
 app.use('/user', userRoute)
 app.use('/bill', billRoute)
+app.use('/persnol', expantionRoute)
 
 app.get('/', (req, res) => {
     res.status(200).send("hello transporters");
