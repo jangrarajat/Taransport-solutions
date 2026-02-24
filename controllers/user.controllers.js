@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Tranjactions from "../models/dispatch.model.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { options } from "../utils/cookie.option.js";
@@ -146,4 +147,71 @@ const refreshExpriedToken = async (req, res) => {
    }
 }
 
-export { registration, login, logout, refreshExpriedToken }
+
+
+const getTotalRevenue = async (req, res) => {
+   try {
+
+      const { filter } = req.query;
+      // filter = week | month | year
+
+      const now = new Date();
+      let startDate;
+
+      if (filter === "week") {
+         startDate = new Date();
+         startDate.setDate(now.getDate() - 7);
+      }
+
+      else if (filter === "month") {
+         startDate = new Date();
+         startDate.setMonth(now.getMonth() - 1);
+      }
+
+      else if (filter === "year") {
+         startDate = new Date();
+         startDate.setFullYear(now.getFullYear() - 1);
+      }
+
+      else {
+         return res.status(400).json({
+            success: false,
+            message: "Invalid filter use week, month or year"
+         })
+      }
+
+      const result = await Tranjactions.aggregate([
+         {
+            $match: {
+               userId: req.user._id,
+               createdAt: { $gte: startDate }
+            }
+         },
+         {
+            $group: {
+               _id: null,
+               totalRevenue: { $sum: "$faynalAmmount" },
+               totalTripBalance: { $sum: "$tripBalanceAmmount" }
+            }
+         }
+      ])
+
+      return res.status(200).json({
+         success: true,
+         message: "get dashbord data success",
+         data: result[0] || {
+            totalRevenue: 0,
+            totalTripBalance: 0
+         }
+      })
+
+   } catch (error) {
+      return res.status(500).json({
+         success: false,
+         message: "Server error",
+         error: error.message
+      })
+   }
+}
+
+export { registration, login, logout, refreshExpriedToken, getTotalRevenue }
