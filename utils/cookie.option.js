@@ -1,7 +1,7 @@
 const options = {
     httpOnly: true,
     secure: false,
-    sameSite: "strict"
+    sameSite: "lax"
 }
 
 export { options }

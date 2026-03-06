@@ -7,50 +7,53 @@ import { options } from "../utils/cookie.option.js";
 
 const registration = async (req, res) => {
    try {
-      const { name, number, email, password, companyName } = req.body || {}
-      console.log(req.body)
+      const { name, number, email, password, companyName } = req.body;
 
-      // empty feilds error
-      if (!name || !number || !email || !password || !companyName) return res.status(400).json({ success: false, message: "All fields are requried" });
+      if (!name || !number || !email || !password || !companyName) {
+         return res.status(400).json({
+            success: false,
+            message: "All fields are required"
+         });
+      }
 
-      // check User Exist
-      const checkUserExist = await User.findOne({
-         $or: [
-            { email: email },
-            { number: number }
-         ]
-      })
-      console.log(checkUserExist)
-      if (checkUserExist) return res.status(400).json({ success: false, message: "User already exist" });
+      console.log("1")
 
+      const existingUser = await User.findOne({
+         $or: [{ email }, { number }]
+      });
 
-      // create new user
+      console.log("existingUser" ,existingUser)
+
+      if (existingUser) {
+         return res.status(400).json({
+            success: false,
+            message: "User already exists"
+         });
+      }
+      console.log("2")
       const user = await User.create({
-         name: name,
-         number: number,
-         email: email,
-         password: password,
-         companyName: companyName
-      })
-
-      const findUser = await User.find({
-         $or: [
-            { email: email },
-            { number: number }
-         ]
-      }).select('-password')
-      if (!findUser) return res.status(400).json({ success: false, message: "Registration failed" });
-
-
-
-      return res.status(200).json({ success: true, message: "Registration success", findUser });
+         name,
+         number,
+         email,
+         password,
+         companyName
+      });
+      console.log("3")
+      const userWithoutPassword = await User.findById(user._id).select("-password");
+      console.log("4")
+      return res.status(201).json({
+         success: true,
+         message: "Registration successful",
+         user: userWithoutPassword
+      });
    } catch (error) {
-      res.status(500).json({ success: false, message: "Server error" });
-      console.log(error.message)
-      throw error
+      console.log(error.message);
+      return res.status(500).json({
+         success: false,
+         message: "Server error"
+      });
    }
-
-}
+};
 
 
 const login = async (req, res) => {

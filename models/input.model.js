@@ -1,5 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
- 
+
 const billSchema = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -54,6 +54,47 @@ const billSchema = new Schema({
         type: String,
         requried: true
 
+    }, frightAmount: {
+        type: Number,
+        requried: true
+    },
+    vehicalNO: {
+        type: String,
+        requried: true
+    },
+    advanceCash: {
+        type: Number,
+
+    },
+    desil: {
+        type: Number,
+
+    },
+    petrolPump: {
+        type: String,
+
+    },
+    commeion: {
+        type: Number,
+        requried: true
+    },
+    tripBalanceAmmount: {
+        type: Number,
+        requried: true
+    },
+    vehicalPayed: [{
+        amount: {
+            type: Number,
+            default: 0
+        },
+        remark: {
+            type: String,
+            default: "nothing"
+        }
+    }],
+    faynalAmmount: {
+        type: Number,
+        requried: true
     },
 
 

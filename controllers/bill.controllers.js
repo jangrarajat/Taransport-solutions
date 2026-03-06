@@ -99,8 +99,18 @@ const addBillEntry = async (req, res) => {
             frightAmount: frightAmount,
             faynalAmmount: tripBalanceAmmount,
             tripBalanceAmmount: tripBalanceAmmount,
-            TotalInvoiceValue: TotalInvoiceValue
+            TotalInvoiceValue: TotalInvoiceValue,
+            frightAmount: frightAmount,
+            vehicalNO: VehicleNo,
+            advanceCash: advanceCash,
+            desil: desilOnRent,
+            petrolPump: petrolPump,
+            commeion: cometion,
+            tripBalanceAmmount: tripBalanceAmmount,
+            faynalAmmount: tripBalanceAmmount,
         })
+
+        console.log(bill)
         if (!bill) return res.status(400).json({ success: false, message: "bill entry failed" })
 
 
@@ -115,34 +125,38 @@ const addBillEntry = async (req, res) => {
 
 const getBiity = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1
-        const limit = parseInt(req.query.limit) || 20
-        const { month, year } = req.query
-        const skip = (page - 1) * limit
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const { month, year, search } = req.query; // Search query added
+        const skip = (page - 1) * limit;
 
-        const currentDate = new Date()
+        const currentDate = new Date();
+        const monthNum = month ? parseInt(month) : currentDate.getMonth() + 1;
+        const yearNum = year ? parseInt(year) : currentDate.getFullYear();
 
-        const monthNum = month ? parseInt(month) : currentDate.getMonth() + 1
-        const yearNum = year ? parseInt(year) : currentDate.getFullYear()
+        const firstDay = new Date(yearNum, monthNum - 1, 1);
+        const lastDay = new Date(yearNum, monthNum, 0);
 
-        const firstDay = new Date(yearNum, monthNum - 1, 1)
-        const lastDay = new Date(yearNum, monthNum, 0)
-
-        const bills = await Billitry.find({
+        // Filter Object
+        let query = {
             userId: req.user._id,
-            createdAt: {
-                $gte: firstDay,
-                $lte: lastDay
-            }
-        }).skip(skip).limit(limit)
+            createdAt: { $gte: firstDay, $lte: lastDay }
+        };
 
-        const total = await Billitry.countDocuments({
-            userId: req.user._id,
-            createdAt: {
-                $gte: firstDay,
-                $lte: lastDay
-            }
-        })
+        // Agar search query hai toh multi-field search logic
+        if (search) {
+            query.$or = [
+                { LRNO: { $regex: search, $options: 'i' } },
+                { DINo: { $regex: search, $options: 'i' } },
+                { NameOfRecipient: { $regex: search, $options: 'i' } },
+                { Destination: { $regex: search, $options: 'i' } },
+                { VehicleNo: { $regex: search, $options: 'i' } },
+                { DateOfIssueOfInvoice: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const bills = await Billitry.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
+        const total = await Billitry.countDocuments(query);
 
         return res.status(200).json({
             success: true,
@@ -151,16 +165,12 @@ const getBiity = async (req, res) => {
             page,
             totalBilitrys: total,
             totalPage: Math.ceil(total / limit)
-        })
+        });
 
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "server error",
-            error: error.message
-        })
+        return res.status(500).json({ success: false, message: "server error", error: error.message });
     }
-}
+};
 
 
 const getPetrolPump = async (req, res) => {
@@ -236,7 +246,7 @@ const updatePetrolPumpPaymentStatus = async (req, res) => {
         const updatedData = await PetrolPump.findByIdAndUpdate(
             id,
             { payment: payment },
-            { returnDocument: "after" }   
+            { returnDocument: "after" }
         )
 
         return res.status(200).json({

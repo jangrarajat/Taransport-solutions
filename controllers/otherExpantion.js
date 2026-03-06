@@ -26,57 +26,47 @@ const expantion = async (req, res) => {
 
 const getExpantions = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1
-        const limit = parseInt(req.query.limit) || 20
-        const { title, month, year } = req.query
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const { title, month, year, search } = req.query;
+        const skip = (page - 1) * limit;
 
-        const skip = (page - 1) * limit
+        const currentDate = new Date();
+        const monthNum = month ? parseInt(month) : currentDate.getMonth() + 1;
+        const yearNum = year ? parseInt(year) : currentDate.getFullYear();
 
-       
-        const currentDate = new Date()
+        const firstDay = new Date(yearNum, monthNum - 1, 1);
+        const lastDay = new Date(yearNum, monthNum, 0);
 
-        const monthNum = month ? parseInt(month) : currentDate.getMonth() + 1
-        const yearNum = year ? parseInt(year) : currentDate.getFullYear()
-
-        const firstDay = new Date(yearNum, monthNum - 1, 1)
-        const lastDay = new Date(yearNum, monthNum, 0)
-
-        const expantions = await OtherExpantion.find({
+        let query = {
             userId: req.user._id,
-            title: title,
-            expenseDate: {
-                $gte: firstDay,
-                $lte: lastDay
-            }
-        }).skip(skip).limit(limit)
+            expenseDate: { $gte: firstDay, $lte: lastDay }
+        };
 
-        const total = await OtherExpantion.countDocuments({
-            userId: req.user._id,
-            title: title,
-            expenseDate: {
-                $gte: firstDay,
-                $lte: lastDay
-            }
-        })
+        if (title) query.title = title;
 
+        if (search) {
+            query.$or = [
+                { "amount.1.paymentPurpes": { $regex: search, $options: 'i' } }, // Search in purpose
+                { descraption: { $regex: search, $options: 'i' } },
+                { expenseDate: { $regex: search, $options: 'i' } }
+            ];
+        }
 
-
+        const expantions = await OtherExpantion.find(query).skip(skip).limit(limit).sort({ expenseDate: -1 });
+        const total = await OtherExpantion.countDocuments(query);
 
         return res.status(200).json({
             success: true,
             message: "Get Expantion success",
             expantions,
-            page: page,
+            page,
             totalExpantion: total,
             totalPage: Math.ceil(total / limit)
-        })
-
-
-        return res.status(200).json({ success: true, message: "get expantions success" })
+        });
     } catch (error) {
-        return res.status(500).json({ success: false, message: "server error", error: error.message })
+        return res.status(500).json({ success: false, message: "server error", error: error.message });
     }
-
-}
+};
 
 export { expantion, getExpantions };
