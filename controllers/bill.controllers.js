@@ -65,21 +65,21 @@ const addBillEntry = async (req, res) => {
 
 
 
-        // trip money tranjactions and total balance 
-        const saveTripTranjactions = await Tranjactions.create({
-            userId: req.user._id,
-            frightAmount: frightAmount,
-            vehicalNO: VehicleNo,
-            advanceCash: advanceCash,
-            desil: desilOnRent,
-            petrolPump: petrolPump,
-            commeion: cometion,
-            tripBalanceAmmount: tripBalanceAmmount,
-            faynalAmmount: tripBalanceAmmount,
+        // // trip money tranjactions and total balance 
+        // const saveTripTranjactions = await Tranjactions.create({
+        //     userId: req.user._id,
+        //     frightAmount: frightAmount,
+        //     vehicalNO: VehicleNo,
+        //     advanceCash: advanceCash,
+        //     desil: desilOnRent,
+        //     petrolPump: petrolPump,
+        //     commeion: cometion,
+        //     tripBalanceAmmount: tripBalanceAmmount,
+        //     faynalAmmount: tripBalanceAmmount,
 
-        })
+        // })
 
-        if (!saveTripTranjactions) return res.status(400).json({ success: false, message: "Trip Tranjactions entry failed" })
+        // if (!saveTripTranjactions) return res.status(400).json({ success: false, message: "Trip Tranjactions entry failed" })
 
 
         //   billity 
@@ -264,5 +264,39 @@ const updatePetrolPumpPaymentStatus = async (req, res) => {
     }
 }
 
+// bill.controllers.js mein niche add karein
+// bill.controllers.js mein is function ko update karein
+const updateVehicleMaintenance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { amount, remark } = req.body;
 
-export { addBillEntry, getBiity, getPetrolPump, updatePetrolPumpPaymentStatus };
+        if (!amount || isNaN(amount)) {
+            return res.status(400).json({ success: false, message: "Valid amount is required" });
+        }
+
+        const bill = await Billitry.findById(id);
+        if (!bill) return res.status(404).json({ success: false, message: "Bilty not found" });
+
+        const newBalance = Number(bill.tripBalanceAmmount) - Number(amount);
+
+        const updatedBill = await Billitry.findByIdAndUpdate(
+            id,
+            {
+                vehicalPayedAmount: Number(amount),
+                vehicalPayedremark: remark || "Maintenance",
+                tripBalanceAmmount: newBalance
+            },
+            // 'new: true' ki jagah ise use karein
+            { returnDocument: 'after' } 
+        );
+
+        return res.status(200).json({ success: true, message: "Maintenance updated", updatedBill });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+};
+
+
+
+export { addBillEntry, getBiity, getPetrolPump, updatePetrolPumpPaymentStatus , updateVehicleMaintenance };

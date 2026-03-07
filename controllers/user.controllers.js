@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
-import Tranjactions from "../models/dispatch.model.js"
+ 
+import Billitry from "../models/input.model.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { options } from "../utils/cookie.option.js";
@@ -154,7 +155,7 @@ const refreshExpriedToken = async (req, res) => {
 
 const getTotalRevenue = async (req, res) => {
    try {
-
+  
       const { filter } = req.query;
       // filter = week | month | year
 
@@ -182,8 +183,8 @@ const getTotalRevenue = async (req, res) => {
             message: "Invalid filter use week, month or year"
          })
       }
-
-      const result = await Tranjactions.aggregate([
+    
+      const result = await Billitry.aggregate([
          {
             $match: {
                userId: req.user._id,
@@ -198,6 +199,8 @@ const getTotalRevenue = async (req, res) => {
             }
          }
       ])
+
+      console.log(result)
 
       return res.status(200).json({
          success: true,

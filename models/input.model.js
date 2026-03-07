@@ -82,16 +82,15 @@ const billSchema = new Schema({
         type: Number,
         requried: true
     },
-    vehicalPayed: [{
-        amount: {
-            type: Number,
-            default: 0
-        },
-        remark: {
-            type: String,
-            default: "nothing"
-        }
-    }],
+    vehicalPayedAmount: {
+        type: Number,
+        default: 0
+    },
+    vehicalPayedremark: {
+        type: String,
+        default: "nothing"
+    }
+    ,
     faynalAmmount: {
         type: Number,
         requried: true
